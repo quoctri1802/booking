@@ -99,7 +99,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-900 leading-tight">
-                TTYT Quận Liên Chiểu
+                TTYT Khu vực Liên Chiểu
               </h1>
               <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
                 Hệ thống tổng đài AI & Quản lý lịch hẹn

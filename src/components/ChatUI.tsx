@@ -5,7 +5,11 @@ import VoiceButton from './VoiceButton';
 import ReactMarkdown from 'react-markdown';
 import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const apiKey = process.env.GEMINI_API_KEY || "";
+if (!apiKey) {
+  console.warn("GEMINI_API_KEY is missing. Chatbot will not respond. Please set it in your environment variables.");
+}
+const genAI = new GoogleGenAI({ apiKey });
 
 const KNOWLEDGE_BASE = `
   Bạn là trợ lý ảo thông minh của Trung tâm Y tế Khu vực Liên Chiểu (Đà Nẵng).
@@ -74,6 +78,7 @@ export default function ChatUI() {
 
   const extractBookingData = async (history: Message[]): Promise<any> => {
     try {
+      if (!apiKey) throw new Error("GEMINI_API_KEY is missing");
       const response = await genAI.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
@@ -89,6 +94,7 @@ export default function ChatUI() {
 
   const categorizeInquiry = async (userMsg: string, aiResp: string): Promise<string> => {
     try {
+      if (!apiKey) throw new Error("GEMINI_API_KEY is missing");
       const model = genAI.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
@@ -131,6 +137,7 @@ export default function ChatUI() {
     setLoading(true);
 
     try {
+      if (!apiKey) throw new Error("GEMINI_API_KEY is missing");
       const response = await genAI.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
