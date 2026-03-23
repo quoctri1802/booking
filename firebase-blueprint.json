@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Lịch hẹn khám bệnh của bệnh nhân",
+      "type": "object",
+      "properties": {
+        "patientName": { "type": "string", "description": "Tên bệnh nhân" },
+        "phone": { "type": "string", "description": "Số điện thoại liên lạc" },
+        "department": { "type": "string", "description": "Khoa khám" },
+        "appointmentTime": { "type": "string", "format": "date-time", "description": "Thời gian hẹn" },
+        "googleEventId": { "type": "string", "description": "ID sự kiện Google Calendar" },
+        "status": { "type": "string", "enum": ["confirmed", "completed", "cancelled"], "description": "Trạng thái lịch hẹn" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Ngày tạo" }
+      },
+      "required": ["patientName", "phone", "department", "appointmentTime", "status"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Nhân viên hoặc quản trị viên hệ thống",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "Email nhân viên" },
+        "role": { "type": "string", "enum": ["staff", "admin"], "description": "Vai trò" },
+        "name": { "type": "string", "description": "Tên hiển thị" },
+        "phone": { "type": "string", "description": "Số điện thoại" },
+        "department": { "type": "string", "description": "Khoa/Phòng ban" },
+        "position": { "type": "string", "description": "Chức vụ (Bác sĩ, Điều dưỡng, v.v.)" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Trạng thái hoạt động" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Ngày tạo" }
+      },
+      "required": ["email", "role", "name", "status"]
+    },
+    "Interaction": {
+      "title": "Interaction",
+      "description": "Lịch sử tương tác giữa bệnh nhân và AI",
+      "type": "object",
+      "properties": {
+        "userMessage": { "type": "string", "description": "Tin nhắn của người dùng" },
+        "aiResponse": { "type": "string", "description": "Phản hồi của AI" },
+        "category": { "type": "string", "enum": ["booking", "inquiry", "emergency", "complaint", "other"], "description": "Phân loại tương tác" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Thời gian tương tác" }
+      },
+      "required": ["userMessage", "aiResponse", "category", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Danh sách lịch hẹn"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Thông tin nhân viên"
+    },
+    "/interactions/{interactionId}": {
+      "schema": "Interaction",
+      "description": "Lịch sử hội thoại AI"
+    }
+  }
+}

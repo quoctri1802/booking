@@ -1,0 +1,5 @@
+{
+  "name": "AI Call Center & Smart Appointment Management System",
+  "description": "Hệ thống tổng đài AI và quản lý lịch hẹn thông minh cho Trung tâm Y tế Quận Liên Chiểu.",
+  "requestFramePermissions": ["microphone"]
+}

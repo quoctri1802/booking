@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "quoctri1802@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isStaff() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['staff', 'admin'] ||
+         isAdmin());
+    }
+
+    function isValidAppointment(data) {
+      return data.patientName is string && data.patientName.size() > 0 && data.patientName.size() < 100 &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 15 &&
+             data.department is string &&
+             (
+               ('patientId' in data && data.patientId is string && data.patientId.size() > 0) ||
+               ('citizenId' in data && data.citizenId is string && data.citizenId.size() > 0)
+             ) &&
+             data.status in ['confirmed', 'completed', 'cancelled'];
+    }
+
+    function isValidInteraction(data) {
+      return data.userMessage is string && data.userMessage.size() > 0 &&
+             data.aiResponse is string &&
+             data.category in ['booking', 'inquiry', 'emergency', 'complaint', 'other'] &&
+             data.timestamp is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /appointments/{appointmentId} {
+      // Patients can create appointments without login
+      allow create: if isValidAppointment(request.resource.data);
+      
+      // Staff and Admin can read and update
+      allow read: if isStaff();
+      allow update: if isStaff() && isValidAppointment(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /interactions/{interactionId} {
+      // Patients can log interactions
+      allow create: if isValidInteraction(request.resource.data);
+      // Staff can read and analyze
+      allow read: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+  }
+}
