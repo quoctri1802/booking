@@ -33,6 +33,7 @@ service cloud.firestore {
                ('patientId' in data && data.patientId is string && data.patientId.size() > 0) ||
                ('citizenId' in data && data.citizenId is string && data.citizenId.size() > 0)
              ) &&
+             (!('dob' in data) || (data.dob is string && data.dob.size() > 0)) &&
              data.status in ['confirmed', 'completed', 'cancelled'];
     }
 

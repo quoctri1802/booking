@@ -6,7 +6,7 @@ import Dashboard from './components/Dashboard';
 import PatientList from './components/PatientList';
 import InteractionList from './components/InteractionList';
 import StaffList from './components/StaffList';
-import { LogIn, LogOut, User as UserIcon, Activity, Shield } from 'lucide-react';
+import { LogIn, LogOut, User as UserIcon, Activity, Shield, Menu, X } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function App() {
@@ -16,6 +16,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'chat' | 'dashboard' | 'patients' | 'interactions' | 'users'>('chat');
   const [appointments, setAppointments] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -86,47 +87,58 @@ export default function App() {
           setActiveTab={setActiveTab} 
           onLogout={logout}
           user={{ ...user, role: userRole }}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-500 p-2 rounded-lg">
-              <Activity className="text-white w-6 h-6" />
+        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {user && (
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 -ml-2 text-slate-500 hover:text-slate-900 lg:hidden"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            )}
+            <div className="bg-emerald-500 p-1.5 sm:p-2 rounded-lg">
+              <Activity className="text-white w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">
-                TTYT Khu vực Liên Chiểu
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-lg font-bold text-slate-900 leading-tight truncate">
+                TTYT Liên Chiểu
               </h1>
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
-                Hệ thống tổng đài AI & Quản lý lịch hẹn
+              <p className="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider truncate">
+                Tổng đài AI & Quản lý
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {!user ? (
               <button
                 onClick={loginWithGoogle}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all font-medium shadow-sm"
+                className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all font-medium shadow-sm text-xs sm:text-sm"
               >
-                <LogIn className="w-4 h-4" />
-                <span>Đăng nhập nhân viên</span>
+                <LogIn className="w-3.5 h-3.5 sm:w-4 h-4" />
+                <span className="hidden xs:inline">Đăng nhập</span>
+                <span className="xs:hidden">Login</span>
               </button>
             ) : (
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="text-right hidden md:block">
                   <p className="text-sm font-semibold text-slate-900">{user.displayName}</p>
                   <p className="text-xs text-slate-500">Nhân viên y tế</p>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-200 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt={user.displayName || ''} referrerPolicy="no-referrer" />
                   ) : (
-                    <UserIcon className="text-slate-500 w-5 h-5" />
+                    <UserIcon className="text-slate-500 w-4 h-4 sm:w-5 sm:h-5" />
                   )}
                 </div>
               </div>
@@ -135,7 +147,7 @@ export default function App() {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-slate-50">
           <div className="max-w-7xl mx-auto h-full">
             {!user || activeTab === 'chat' ? (
               <ChatUI />

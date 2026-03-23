@@ -7,6 +7,9 @@
       "properties": {
         "patientName": { "type": "string", "description": "Tên bệnh nhân" },
         "phone": { "type": "string", "description": "Số điện thoại liên lạc" },
+        "dob": { "type": "string", "format": "date", "description": "Ngày tháng năm sinh" },
+        "patientId": { "type": "string", "description": "Mã số bệnh nhân" },
+        "citizenId": { "type": "string", "description": "Số CCCD" },
         "department": { "type": "string", "description": "Khoa khám" },
         "appointmentTime": { "type": "string", "format": "date-time", "description": "Thời gian hẹn" },
         "googleEventId": { "type": "string", "description": "ID sự kiện Google Calendar" },
