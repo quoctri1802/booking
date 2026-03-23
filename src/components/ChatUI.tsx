@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, MicOff, Bot, User as UserIcon, Calendar, Phone, UserPlus, Stethoscope, Loader2, CheckCircle2, Shield } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, User as UserIcon, Calendar, Phone, UserPlus, Stethoscope, Loader2, CheckCircle2, Shield, Check, CheckCheck } from 'lucide-react';
 import { db, addDoc, collection, OperationType, handleFirestoreError } from '../firebase';
 import VoiceButton from './VoiceButton';
 import ReactMarkdown from 'react-markdown';
@@ -56,6 +56,25 @@ const KNOWLEDGE_BASE = `
 interface Message {
   role: 'user' | 'model';
   parts: { text: string }[];
+  status?: 'sending' | 'sent' | 'read';
+  timestamp?: string;
+}
+
+function TypingIndicator() {
+  return (
+    <div className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
+      <div className="flex gap-2 sm:gap-3 max-w-[80%]">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-white text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm">
+          <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
+        </div>
+        <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex items-center gap-1">
+          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ChatUI() {
@@ -132,9 +151,10 @@ export default function ChatUI() {
     const messageText = text || input;
     if (!messageText.trim()) return;
 
+    const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     const newMessages: Message[] = [
       ...messages,
-      { role: 'user', parts: [{ text: messageText }] }
+      { role: 'user', parts: [{ text: messageText }], status: 'sent', timestamp }
     ];
     setMessages(newMessages);
     setInput('');
@@ -143,6 +163,14 @@ export default function ChatUI() {
 
     try {
       const genAI = getGenAI();
+      
+      // Simulate "Read" status when bot starts processing
+      setTimeout(() => {
+        setMessages(prev => prev.map((m, idx) => 
+          idx === prev.length - 1 && m.role === 'user' ? { ...m, status: 'read' } : m
+        ));
+      }, 500);
+
       const response = await genAI.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
@@ -153,7 +181,10 @@ export default function ChatUI() {
       });
 
       const aiText = response.text;
-      const updatedMessages: Message[] = [...newMessages, { role: 'model', parts: [{ text: aiText }] }];
+      const aiTimestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      const updatedMessages: Message[] = [...newMessages.map((m, idx) => 
+        idx === newMessages.length - 1 && m.role === 'user' ? { ...m, status: 'read' } : m
+      ), { role: 'model', parts: [{ text: aiText }], timestamp: aiTimestamp }];
       setMessages(updatedMessages);
       
       // Log interaction
@@ -274,13 +305,25 @@ export default function ChatUI() {
               }`}>
                 {m.role === 'user' ? <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" /> : <Bot className="w-4 h-4 sm:w-5 sm:h-5" />}
               </div>
-              <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm ${
+              <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm relative ${
                 m.role === 'user' 
                   ? 'bg-emerald-600 text-white rounded-tr-none' 
                   : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
               }`}>
                 <div className="prose prose-xs sm:prose-sm max-w-none prose-slate">
                    <ReactMarkdown>{m.parts[0].text}</ReactMarkdown>
+                </div>
+                <div className={`flex items-center justify-end gap-1 mt-1 opacity-70 text-[9px] sm:text-[10px] ${m.role === 'user' ? 'text-emerald-50' : 'text-slate-400'}`}>
+                  <span>{m.timestamp}</span>
+                  {m.role === 'user' && (
+                    <span>
+                      {m.status === 'read' ? (
+                        <CheckCheck className="w-3 h-3" />
+                      ) : (
+                        <Check className="w-3 h-3" />
+                      )}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -294,19 +337,7 @@ export default function ChatUI() {
             </div>
           </div>
         )}
-        {loading && (
-          <div className="flex justify-start animate-pulse">
-            <div className="flex gap-3 max-w-[80%]">
-              <div className="w-9 h-9 rounded-xl bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div className="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
-                <span className="text-sm text-slate-400 font-medium italic">Đang suy nghĩ...</span>
-              </div>
-            </div>
-          </div>
-        )}
+        {loading && <TypingIndicator />}
       </div>
 
       {/* Input Area */}
